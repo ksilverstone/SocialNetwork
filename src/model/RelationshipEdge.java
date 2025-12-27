@@ -26,5 +26,6 @@ public class RelationshipEdge {
     }
 
     public double getWeight() { return weight; }
+    public UserNode getSource() { return source; }
     public UserNode getDestination() { return destination; }
 }
