@@ -2,11 +2,8 @@ package model;
 
 import java.util.*;
 
-/**
- * Sosyal ağ grafını temsil eden sınıf.
- * Düğümler (UserNode) ve kenarlar (RelationshipEdge) yönetir.
- */
 public class SocialGraph {
+    // Değişkenler (Final yapmak iyi pratiktir ama şimdilik böyle kalsın)
     private Map<Integer, UserNode> nodes;
     private Map<Integer, List<RelationshipEdge>> adjacencyList;
     private List<RelationshipEdge> edges;
@@ -17,9 +14,6 @@ public class SocialGraph {
         this.edges = new ArrayList<>();
     }
 
-    /**
-     * Düğüm ekler
-     */
     public void addNode(UserNode node) {
         if (nodes.containsKey(node.getId())) {
             throw new IllegalArgumentException("Düğüm zaten mevcut: " + node.getId());
@@ -28,74 +22,28 @@ public class SocialGraph {
         adjacencyList.put(node.getId(), new ArrayList<>());
     }
 
-    /**
-     * Düğüm siler
-     */
-    public boolean removeNode(int nodeId) {
-        if (!nodes.containsKey(nodeId)) {
-            return false;
-        }
-
-        // Tüm kenarları kaldır
-        List<RelationshipEdge> edgesToRemove = new ArrayList<>(adjacencyList.get(nodeId));
-        for (RelationshipEdge edge : edgesToRemove) {
-            removeEdge(nodeId, edge.getDestination().getId());
-        }
-
-        // Diğer düğümlerden bu düğüme gelen kenarları kaldır
-        for (List<RelationshipEdge> edgeList : adjacencyList.values()) {
-            edgeList.removeIf(edge -> edge.getDestination().getId() == nodeId);
-        }
-
-        nodes.remove(nodeId);
-        adjacencyList.remove(nodeId);
-        return true;
-    }
-
-    /**
-     * Kenar ekler (yönsüz graf için her iki yönde de ekler)
-     */
     public void addEdge(UserNode source, UserNode destination) {
         if (source.getId() == destination.getId()) {
             throw new IllegalArgumentException("Self-loop'a izin verilmez");
         }
+        // Düğümler yoksa hata fırlatmak yerine ekleyebiliriz veya hata fırlatabiliriz.
+        // Mevcut yapıda hata fırlatıyoruz:
         if (!nodes.containsKey(source.getId()) || !nodes.containsKey(destination.getId())) {
             throw new IllegalArgumentException("Düğümler graf içinde olmalıdır");
         }
 
-        // Aynı kenarın zaten var olup olmadığını kontrol et
         if (hasEdge(source.getId(), destination.getId())) {
-            return; // Kenar zaten mevcut
+            return;
         }
 
         RelationshipEdge edge1 = new RelationshipEdge(source, destination);
-        RelationshipEdge edge2 = new RelationshipEdge(destination, source);
+        RelationshipEdge edge2 = new RelationshipEdge(destination, source); // Yönsüz olduğu için
 
         adjacencyList.get(source.getId()).add(edge1);
         adjacencyList.get(destination.getId()).add(edge2);
         edges.add(edge1);
     }
 
-    /**
-     * Kenar siler
-     */
-    public boolean removeEdge(int sourceId, int destinationId) {
-        if (!hasEdge(sourceId, destinationId)) {
-            return false;
-        }
-
-        adjacencyList.get(sourceId).removeIf(edge -> edge.getDestination().getId() == destinationId);
-        adjacencyList.get(destinationId).removeIf(edge -> edge.getDestination().getId() == sourceId);
-        edges.removeIf(edge -> 
-            (edge.getSource().getId() == sourceId && edge.getDestination().getId() == destinationId) ||
-            (edge.getSource().getId() == destinationId && edge.getDestination().getId() == sourceId)
-        );
-        return true;
-    }
-
-    /**
-     * İki düğüm arasında kenar olup olmadığını kontrol eder
-     */
     public boolean hasEdge(int sourceId, int destinationId) {
         if (!adjacencyList.containsKey(sourceId)) {
             return false;
@@ -104,23 +52,9 @@ public class SocialGraph {
                 .anyMatch(edge -> edge.getDestination().getId() == destinationId);
     }
 
-    /**
-     * Düğümü ID'ye göre getirir
-     */
-    public UserNode getNode(int nodeId) {
-        return nodes.get(nodeId);
-    }
+    // --- BFS İÇİN GEREKLİ DÜZELTME BURADA ---
 
-    /**
-     * Tüm düğümleri getirir
-     */
-    public Collection<UserNode> getAllNodes() {
-        return nodes.values();
-    }
-
-    /**
-     * Bir düğümün komşularını getirir
-     */
+    // 1. Versiyon: ID ile çağırmak istersek
     public List<UserNode> getNeighbors(int nodeId) {
         if (!adjacencyList.containsKey(nodeId)) {
             return new ArrayList<>();
@@ -132,56 +66,22 @@ public class SocialGraph {
         return neighbors;
     }
 
-    /**
-     * Bir düğümün kenarlarını getirir
-     */
-    public List<RelationshipEdge> getEdges(int nodeId) {
-        return adjacencyList.getOrDefault(nodeId, new ArrayList<>());
+    // 2. Versiyon: BFS algoritması UserNode nesnesi gönderdiği için bu lazım!
+    public List<UserNode> getNeighbors(UserNode node) {
+        // Doğrudan yukarıdaki ID'li metodu çağırıyoruz, kod tekrarı yapmıyoruz.
+        return getNeighbors(node.getId());
     }
 
-    /**
-     * Tüm kenarları getirir
-     */
+    // Getter Metotları
+    public UserNode getNode(int nodeId) {
+        return nodes.get(nodeId);
+    }
+
+    public Collection<UserNode> getAllNodes() {
+        return nodes.values();
+    }
+
     public List<RelationshipEdge> getAllEdges() {
         return new ArrayList<>(edges);
     }
-
-    /**
-     * İki düğüm arasındaki kenarın ağırlığını getirir
-     */
-    public double getEdgeWeight(int sourceId, int destinationId) {
-        if (!adjacencyList.containsKey(sourceId)) {
-            return Double.POSITIVE_INFINITY;
-        }
-        return adjacencyList.get(sourceId).stream()
-                .filter(edge -> edge.getDestination().getId() == destinationId)
-                .findFirst()
-                .map(RelationshipEdge::getWeight)
-                .orElse(Double.POSITIVE_INFINITY);
-    }
-
-    /**
-     * Grafın düğüm sayısını getirir
-     */
-    public int getNodeCount() {
-        return nodes.size();
-    }
-
-    /**
-     * Grafın kenar sayısını getirir
-     */
-    public int getEdgeCount() {
-        return edges.size();
-    }
-
-    /**
-     * Grafı temizler
-     */
-    public void clear() {
-        nodes.clear();
-        adjacencyList.clear();
-        edges.clear();
-    }
 }
-
-
