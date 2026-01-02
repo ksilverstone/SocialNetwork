@@ -2,6 +2,9 @@ package ui;
 
 import algorithms.BFSAlgorithm;
 import algorithms.WelshPowellAlgorithm;
+import algorithms.DFS;
+import algorithms.AStarAlgorithm;
+import algorithms.ConnectedComponents;
 import model.SocialGraph;
 import model.UserNode;
 
@@ -12,11 +15,11 @@ import java.util.Map;
 
 public class MainFrame extends JFrame {
     private SocialGraph graph;
-    private GraphPanel graphPanel;
+    private JTabbedPane tabbedPane;
 
     public MainFrame() {
         // Pencere Ayarları
-        setTitle("Sosyal Ağ Analizi - Kişi 1 Test Paneli");
+        setTitle("Sosyal Ağ Analizi - Kişi 1 & Kişi 2 Test Paneli");
         setSize(1000, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -25,11 +28,29 @@ public class MainFrame extends JFrame {
         graph = new SocialGraph();
         createTestGraph();
 
-        // 2. Çizim Paneli
-        graphPanel = new GraphPanel(graph);
-        add(graphPanel, BorderLayout.CENTER);
+        // 2. Sekme Yapısı
+        tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
 
-        // 3. Kontrol Paneli
+        // Kişi 1 Sekmesi
+        JPanel person1Panel = createPerson1Panel();
+        tabbedPane.addTab("Kişi 1", person1Panel);
+
+        // Kişi 2 Sekmesi
+        JPanel person2Panel = createPerson2Panel();
+        tabbedPane.addTab("Kişi 2", person2Panel);
+
+        add(tabbedPane, BorderLayout.CENTER);
+    }
+
+    private JPanel createPerson1Panel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        
+        // Çizim Paneli
+        GraphPanel graphPanel = new GraphPanel(graph);
+        panel.add(graphPanel, BorderLayout.CENTER);
+
+        // Kontrol Paneli
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
         controlPanel.setBackground(Color.DARK_GRAY);
@@ -39,13 +60,9 @@ public class MainFrame extends JFrame {
         JButton btnColoring = new JButton("Welsh-Powell (Renklendir)");
         JButton btnReset = new JButton("Grafı Sıfırla");
 
-        // --- TASARIM DÜZELTMESİ BURADA ---
-        // Yazı renklerini SİYAH (Black) yaptık ki okunsun.
         styleButton(btnBFS, new Color(135, 206, 250)); // Açık Mavi
         styleButton(btnColoring, new Color(221, 160, 221)); // Erik Rengi (Plum)
         styleButton(btnReset, Color.LIGHT_GRAY);
-
-        // --- AKSİYONLAR ---
 
         // 1. BFS Butonu
         btnBFS.addActionListener(e -> {
@@ -91,7 +108,133 @@ public class MainFrame extends JFrame {
         controlPanel.add(btnColoring);
         controlPanel.add(btnReset);
 
-        add(controlPanel, BorderLayout.SOUTH);
+        panel.add(controlPanel, BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private JPanel createPerson2Panel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        
+        // Çizim Paneli
+        GraphPanel graphPanel = new GraphPanel(graph);
+        panel.add(graphPanel, BorderLayout.CENTER);
+
+        // Kontrol Paneli
+        JPanel controlPanel = new JPanel();
+        controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        controlPanel.setBackground(Color.DARK_GRAY);
+
+        // Butonlar
+        JButton btnDFS = new JButton("DFS Başlat (Derinlik Öncelikli)");
+        JButton btnAStar = new JButton("A* (En Kısa Yol)");
+        JButton btnConnected = new JButton("Bağlı Bileşenler");
+        JButton btnReset = new JButton("Grafı Sıfırla");
+
+        styleButton(btnDFS, new Color(144, 238, 144)); // Açık Yeşil
+        styleButton(btnAStar, new Color(255, 165, 0)); // Turuncu
+        styleButton(btnConnected, new Color(176, 196, 222)); // Açık Gri-Mavi
+        styleButton(btnReset, Color.LIGHT_GRAY);
+
+        // 1. DFS Butonu
+        btnDFS.addActionListener(e -> {
+            DFS dfs = new DFS(graph);
+            UserNode startNode = graph.getNode(0);
+            if(startNode != null) {
+                List<UserNode> result = dfs.findReachableNodes(startNode.getId());
+                graphPanel.setHighlightedPath(result);
+                JOptionPane.showMessageDialog(this, 
+                    "DFS Sırası (Derinlik Öncelikli):\n" + result + 
+                    "\n\nÇalışma Süresi: " + dfs.getExecutionTime() + " ms" +
+                    "\nZiyaret Edilen: " + dfs.getVisitedCount() + " düğüm");
+            }
+        });
+
+        // 2. A* Butonu
+        btnAStar.addActionListener(e -> {
+            // Başlangıç ve hedef düğüm seçimi için dialog
+            String startInput = JOptionPane.showInputDialog(this, "Başlangıç düğüm ID'si girin:", "0");
+            String endInput = JOptionPane.showInputDialog(this, "Hedef düğüm ID'si girin:", "5");
+            
+            try {
+                int startId = Integer.parseInt(startInput);
+                int endId = Integer.parseInt(endInput);
+                
+                UserNode startNode = graph.getNode(startId);
+                UserNode endNode = graph.getNode(endId);
+                
+                if(startNode == null || endNode == null) {
+                    JOptionPane.showMessageDialog(this, "Geçersiz düğüm ID'si!");
+                    return;
+                }
+                
+                AStarAlgorithm aStar = new AStarAlgorithm();
+                List<UserNode> result = aStar.execute(graph, startNode, endNode);
+                
+                if(result.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Yol bulunamadı!");
+                } else {
+                    graphPanel.setHighlightedPath(result);
+                    JOptionPane.showMessageDialog(this, 
+                        "A* En Kısa Yol:\n" + result + 
+                        "\n\nÇalışma Süresi: " + aStar.getExecutionTime() + " ms" +
+                        "\nYol Uzunluğu: " + result.size() + " düğüm");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Geçersiz giriş! Lütfen sayı girin.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage());
+            }
+        });
+
+        // 3. Bağlı Bileşenler Butonu
+        btnConnected.addActionListener(e -> {
+            ConnectedComponents cc = new ConnectedComponents(graph);
+            List<List<UserNode>> components = cc.findConnectedComponents();
+            
+            // Her bileşeni farklı renkle göster
+            Color[] palette = {
+                    Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,
+                    Color.CYAN, Color.MAGENTA, Color.PINK, Color.ORANGE
+            };
+            
+            for(int i = 0; i < components.size(); i++) {
+                Color compColor = palette[i % palette.length];
+                for(UserNode node : components.get(i)) {
+                    node.setColor(compColor);
+                }
+            }
+            
+            graphPanel.setHighlightedPath(null);
+            graphPanel.repaint();
+            
+            StringBuilder message = new StringBuilder();
+            message.append("Bağlı Bileşenler Bulundu!\n\n");
+            message.append("Toplam Bileşen Sayısı: ").append(components.size()).append("\n");
+            message.append("Çalışma Süresi: ").append(cc.getExecutionTime()).append(" ms\n\n");
+            
+            for(int i = 0; i < components.size(); i++) {
+                message.append("Bileşen ").append(i + 1).append(": ").append(components.get(i)).append("\n");
+            }
+            
+            JOptionPane.showMessageDialog(this, message.toString());
+        });
+
+        // 4. Sıfırla
+        btnReset.addActionListener(e -> {
+            graphPanel.setHighlightedPath(null);
+            for(UserNode node : graph.getAllNodes()) {
+                node.setColor(Color.LIGHT_GRAY);
+            }
+            graphPanel.repaint();
+        });
+
+        controlPanel.add(btnDFS);
+        controlPanel.add(btnAStar);
+        controlPanel.add(btnConnected);
+        controlPanel.add(btnReset);
+
+        panel.add(controlPanel, BorderLayout.SOUTH);
+        return panel;
     }
 
     // Buton Tasarım Metodu (Okunabilirlik için güncellendi)
