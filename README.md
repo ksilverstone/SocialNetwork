@@ -2,6 +2,22 @@
 
 Bu proje, sosyal ağları graf teorisi kullanarak modelleyen ve çeşitli graf algoritmaları ile analiz eden bir Java uygulamasıdır. Kullanıcılar arasındaki ilişkileri görselleştirir ve farklı algoritmalar ile ağ yapısını incelemeye olanak sağlar.
 
+## Ekran Görüntüleri
+
+![images/WhatsApp Image 2026-01-02 at 16.49.10 (1).jpeg](images/WhatsApp%20Image%202026-01-02%20at%2016.49.10%20(1).jpeg)
+
+![images/WhatsApp Image 2026-01-02 at 16.49.10 (2).jpeg](images/WhatsApp%20Image%202026-01-02%20at%2016.49.10%20(2).jpeg)
+
+![images/WhatsApp Image 2026-01-02 at 16.49.10.jpeg](images/WhatsApp%20Image%202026-01-02%20at%2016.49.10.jpeg)
+
+![images/WhatsApp Image 2026-01-02 at 16.49.13 (1).jpeg](images/WhatsApp%20Image%202026-01-02%20at%2016.49.13%20(1).jpeg)
+
+![images/WhatsApp Image 2026-01-02 at 16.49.13 (2).jpeg](images/WhatsApp%20Image%202026-01-02%20at%2016.49.13%20(2).jpeg)
+
+![images/WhatsApp Image 2026-01-02 at 16.49.13.jpeg](images/WhatsApp%20Image%202026-01-02%20at%2016.49.13.jpeg)
+
+![images/WhatsApp Image 2026-01-02 at 16.49.14.jpeg](images/WhatsApp%20Image%202026-01-02%20at%2016.49.14.jpeg)
+
 ## Özellikler
 
 ### Graf Modeli
@@ -61,6 +77,14 @@ SocialNetwork/
 │   └── ui/
 │       ├── MainFrame.java           # Ana pencere
 │       └── GraphPanel.java          # Graf çizim paneli
+├── images/                          # Ekran görüntüleri
+│   ├── WhatsApp Image 2026-01-02 at 16.49.10 (1).jpeg
+│   ├── WhatsApp Image 2026-01-02 at 16.49.10 (2).jpeg
+│   ├── WhatsApp Image 2026-01-02 at 16.49.10.jpeg
+│   ├── WhatsApp Image 2026-01-02 at 16.49.13 (1).jpeg
+│   ├── WhatsApp Image 2026-01-02 at 16.49.13 (2).jpeg
+│   ├── WhatsApp Image 2026-01-02 at 16.49.13.jpeg
+│   └── WhatsApp Image 2026-01-02 at 16.49.14.jpeg
 └── README.md
 ```
 
