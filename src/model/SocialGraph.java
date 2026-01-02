@@ -84,4 +84,25 @@ public class SocialGraph {
     public List<RelationshipEdge> getAllEdges() {
         return new ArrayList<>(edges);
     }
+
+    /**
+     * İki düğüm arasındaki kenarın ağırlığını getirir
+     */
+    public double getEdgeWeight(int sourceId, int destinationId) {
+        if (!adjacencyList.containsKey(sourceId)) {
+            return Double.POSITIVE_INFINITY;
+        }
+        return adjacencyList.get(sourceId).stream()
+                .filter(edge -> edge.getDestination().getId() == destinationId)
+                .findFirst()
+                .map(RelationshipEdge::getWeight)
+                .orElse(Double.POSITIVE_INFINITY);
+    }
+
+    /**
+     * İki düğüm arasındaki kenarın ağırlığını getirir (UserNode parametreli)
+     */
+    public double getEdgeWeight(UserNode source, UserNode destination) {
+        return getEdgeWeight(source.getId(), destination.getId());
+    }
 }
