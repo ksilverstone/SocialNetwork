@@ -4,6 +4,7 @@ import algorithms.BFSAlgorithm;
 import algorithms.WelshPowellAlgorithm;
 import algorithms.DFS;
 import algorithms.AStarAlgorithm;
+import algorithms.DijkstraAlgorithm;
 import algorithms.ConnectedComponents;
 import model.SocialGraph;
 import model.UserNode;
@@ -121,17 +122,19 @@ public class MainFrame extends JFrame {
 
         // Kontrol Paneli
         JPanel controlPanel = new JPanel();
-        controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         controlPanel.setBackground(Color.DARK_GRAY);
 
         // Butonlar
-        JButton btnDFS = new JButton("DFS Başlat (Derinlik Öncelikli)");
+        JButton btnDFS = new JButton("DFS Başlat");
         JButton btnAStar = new JButton("A* (En Kısa Yol)");
+        JButton btnDijkstra = new JButton("Dijkstra");
         JButton btnConnected = new JButton("Bağlı Bileşenler");
         JButton btnReset = new JButton("Grafı Sıfırla");
 
         styleButton(btnDFS, new Color(144, 238, 144)); // Açık Yeşil
         styleButton(btnAStar, new Color(255, 165, 0)); // Turuncu
+        styleButton(btnDijkstra, new Color(255, 192, 203)); // Pembe
         styleButton(btnConnected, new Color(176, 196, 222)); // Açık Gri-Mavi
         styleButton(btnReset, Color.LIGHT_GRAY);
 
@@ -186,7 +189,44 @@ public class MainFrame extends JFrame {
             }
         });
 
-        // 3. Bağlı Bileşenler Butonu
+        // 3. Dijkstra Butonu
+        btnDijkstra.addActionListener(e -> {
+            // Başlangıç ve hedef düğüm seçimi için dialog
+            String startInput = JOptionPane.showInputDialog(this, "Başlangıç düğüm ID'si girin:", "0");
+            String endInput = JOptionPane.showInputDialog(this, "Hedef düğüm ID'si girin:", "5");
+            
+            try {
+                int startId = Integer.parseInt(startInput);
+                int endId = Integer.parseInt(endInput);
+                
+                UserNode startNode = graph.getNode(startId);
+                UserNode endNode = graph.getNode(endId);
+                
+                if(startNode == null || endNode == null) {
+                    JOptionPane.showMessageDialog(this, "Geçersiz düğüm ID'si!");
+                    return;
+                }
+                
+                DijkstraAlgorithm dijkstra = new DijkstraAlgorithm();
+                List<UserNode> result = dijkstra.execute(graph, startNode, endNode);
+                
+                if(result.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Yol bulunamadı!");
+                } else {
+                    graphPanel.setHighlightedPath(result);
+                    JOptionPane.showMessageDialog(this, 
+                        "Dijkstra En Kısa Yol:\n" + result + 
+                        "\n\nÇalışma Süresi: " + dijkstra.getExecutionTime() + " ms" +
+                        "\nYol Uzunluğu: " + result.size() + " düğüm");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Geçersiz giriş! Lütfen sayı girin.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage());
+            }
+        });
+
+        // 4. Bağlı Bileşenler Butonu
         btnConnected.addActionListener(e -> {
             ConnectedComponents cc = new ConnectedComponents(graph);
             List<List<UserNode>> components = cc.findConnectedComponents();
@@ -219,7 +259,7 @@ public class MainFrame extends JFrame {
             JOptionPane.showMessageDialog(this, message.toString());
         });
 
-        // 4. Sıfırla
+        // 5. Sıfırla
         btnReset.addActionListener(e -> {
             graphPanel.setHighlightedPath(null);
             for(UserNode node : graph.getAllNodes()) {
@@ -230,6 +270,7 @@ public class MainFrame extends JFrame {
 
         controlPanel.add(btnDFS);
         controlPanel.add(btnAStar);
+        controlPanel.add(btnDijkstra);
         controlPanel.add(btnConnected);
         controlPanel.add(btnReset);
 
@@ -242,9 +283,9 @@ public class MainFrame extends JFrame {
         btn.setBackground(bgColor);
         btn.setForeground(Color.BLACK); // YAZI RENGİ SİYAH OLDU
         btn.setFocusPainted(false);
-        btn.setFont(new Font("Arial", Font.BOLD, 14)); // Font büyütüldü
+        btn.setFont(new Font("Arial", Font.BOLD, 13)); // Font biraz küçültüldü
         btn.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        btn.setPreferredSize(new Dimension(200, 40));
+        btn.setPreferredSize(new Dimension(180, 40));
     }
 
     private void createTestGraph() {
